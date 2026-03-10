@@ -1693,10 +1693,32 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, UNUSED int flags, int arg
 			}
 		}
 
+
 		retval = PAM_SUCCESS;
 	} else {
 		retval = PAM_AUTH_ERR;	/* authentication failure */
 	}
+
+	attribute_t* reply_msg = find_attribute(response, PW_REPLY_MESSAGE);
+	if(reply_msg) {
+		char* buf = malloc(reply_msg->length+1);
+		if(buf) {
+			memcpy(buf, reply_msg->data, reply_msg->length);
+			buf[reply_msg->length] = 0;
+			for(int i=0;i<reply_msg->length;i++) {
+				//only keep alphnumeric else libpam drops the msg
+				//probably there's a better way to do this
+				if(buf[i] >= 0x41 && buf[i] <= 0x59) continue;
+				if(buf[i] >= 0x61 && buf[i] <= 0x7a) continue;
+				if(buf[i] >= 0x30 && buf[i] <= 0x39) continue;
+				buf[i] = 0x20;
+
+			}
+			_pam_log(LOG_ERR, "Got RADIUS Response Message: %s", buf);
+			free(buf);
+		}
+	}
+
 
 do_next:
 	/* If there was a password pass it to the next layer */
