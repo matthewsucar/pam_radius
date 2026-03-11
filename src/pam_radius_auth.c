@@ -1704,14 +1704,14 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, UNUSED int flags, int arg
 		char* buf = malloc(reply_msg->length+1);
 		if(buf) {
 			memcpy(buf, reply_msg->data, reply_msg->length);
-			buf[reply_msg->length] = 0;
+			buf[reply_msg->length] = '\0';
 			for(int i=0;i<reply_msg->length;i++) {
 				//only keep alphnumeric else libpam drops the msg
 				//probably there's a better way to do this
-				if(buf[i] >= 0x41 && buf[i] <= 0x59) continue;
-				if(buf[i] >= 0x61 && buf[i] <= 0x7a) continue;
-				if(buf[i] >= 0x30 && buf[i] <= 0x39) continue;
-				buf[i] = 0x20;
+				if(buf[i] >= 0x41 && buf[i] <= 0x59) continue; //A-Z
+				if(buf[i] >= 0x61 && buf[i] <= 0x7a) continue; //a-z
+				if(buf[i] >= 0x30 && buf[i] <= 0x39) continue; //0-9
+				buf[i] = 0x20; //space
 
 			}
 			_pam_log(LOG_ERR, "Got RADIUS Response Message: %s", buf);
