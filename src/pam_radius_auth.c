@@ -1261,6 +1261,27 @@ error:
 		}
 	}
 
+	attribute_t* reply_msg = find_attribute(response, PW_REPLY_MESSAGE);
+        if(reply_msg) {
+                char* buf = malloc(reply_msg->length+1);
+                if(buf) {
+                        memcpy(buf, reply_msg->data, reply_msg->length);
+                        buf[reply_msg->length] = '\0';
+                        for(int i=0;i<reply_msg->length;i++) {
+                                //only keep alphnumeric else libpam drops the msg
+                                //probably there's a better way to do this
+                                if(buf[i] >= 0x41 && buf[i] <= 0x59) continue; //A-Z
+                                if(buf[i] >= 0x61 && buf[i] <= 0x7a) continue; //a-z
+                                if(buf[i] >= 0x30 && buf[i] <= 0x39) continue; //0-9
+                                buf[i] = 0x20; //space
+
+                        }
+                        _pam_log(LOG_ERR, "Got RADIUS Response Message: %s", buf);
+                        free(buf);
+                }
+        }
+
+
 	DPRINT(LOG_DEBUG, "authentication %s", retval==PAM_SUCCESS ? "succeeded":"failed");
 
 	close(config.sockfd);
